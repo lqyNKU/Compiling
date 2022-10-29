@@ -34,10 +34,8 @@
             }
         if(s==""){}
         else{
-            std::string temp(23-s.size(),' ');
-            std::string tmp(12-to_string(yylineno).size(),' ');
-            std::string DEBUG_INFO = "[DEBUG LAB4]:" + s + temp +
-            to_string(yylineno) + tmp + to_string(offset)+ "\n";
+            std::string DEBUG_INFO = "[DEBUG LAB4]:" + s + "\t\t" +
+            to_string(yylineno) + "\t\t" + to_string(offset)+ "\n";
             fputs(DEBUG_INFO.c_str(), yyout);
         }
     }
@@ -79,11 +77,11 @@ AND "&&"
 OR "||"
 NOT "!"
 
-ID ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
+ID [[:alpha:]_][[:alpha:][:digit:]|_]*
 
 OCTNUMBER 0[0-7]*
 DECIMIAL [1-9][0-9]*
-HEXADECIMAL 0(x|X)[[0-9][a-zA-Z]]+
+HEXADECIMAL 0(x|X)[0-9a-zA-Z]+
 
 EOL (\r\n|\n|\r)
 WHITE [\t ]
@@ -132,7 +130,7 @@ linecommentend \n
 
 "if" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("IF\tif");
+        DEBUG_FOR_LAB4("IF\t\tif");
         offset += 2;
     #else
         return IF;
@@ -284,7 +282,7 @@ linecommentend \n
 }
 "||" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("OR\t||");
+        DEBUG_FOR_LAB4("OR\t\t||");
         offset += 2;
     #else
         return OR;
@@ -370,7 +368,7 @@ linecommentend \n
 
 {ID} {
     #ifdef ONLY_FOR_LEX
-    DEBUG_FOR_LAB4("ID\t"+std::string(yytext));
+    DEBUG_FOR_LAB4("ID\t\t"+std::string(yytext));
     offset += strlen(yytext);
     #else
         return ID;
@@ -467,9 +465,10 @@ int main(int argc, char **argv){
         fprintf(stderr, "No such file or directory: %s", argv[3]);
         exit(EXIT_FAILURE);
     }
-    fprintf(yyout,"%18s\t%10s\t%10s\t%10s\n","token","lexeme","lineno","offset");
+    fprintf(yyout,"%18s\t%6s\t%14s\t%14s\n","token","lexeme","lineno","offset");
 
     yylex();
     return 0;
 }
 #endif
+
