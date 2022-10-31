@@ -20,22 +20,38 @@
     #include <ostream>
     #include <fstream>
     #include <iomanip>
+    #include <stack>
     using namespace std;
     extern FILE *yyin; 
     extern FILE *yyout;
 
     int offset=0;
     int lineno=0;
+	int tag=0;
+	stack<int> scope_stack;
 
-    void DEBUG_FOR_LAB4(std::string s){
+	string align(int w,string s)
+	{
+		int del=w-s.length();
+		return del>0?s+string(del,' '):s.substr(0,w);
+	}
+
+    void DEBUG_FOR_LAB4(std::string token, std::string lexeme, std::string scope="/"){
         if(lineno!=yylineno){
             lineno=yylineno;
             offset=0;
             }
-        if(s==""){}
+        if(token==""){}
         else{
-            std::string DEBUG_INFO = "[DEBUG LAB4]:" + s + "\t\t" +
-            to_string(yylineno) + "\t\t" + to_string(offset)+ "\n";
+            //s = align(20, s);
+			token = align(20, token);
+			lexeme = align(20, lexeme);
+			std::string lineno_s = align(20, to_string(yylineno));
+			std::string offset_s = align(20, to_string(offset));
+			std::string DEBUG_INFO = "[DEBUG LAB4]:" + token + lexeme +
+			lineno_s + offset_s + scope + "\n";
+			//std::string DEBUG_INFO = "[DEBUG LAB4]:" + s + "\t\t" +
+            //to_string(yylineno) + "\t\t" + to_string(offset)+ "\n";
             fputs(DEBUG_INFO.c_str(), yyout);
         }
     }
@@ -104,7 +120,7 @@ linecommentend \n
     *   Q2: What is "INT" actually?
     */
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("CONST\tconst");
+        DEBUG_FOR_LAB4("CONST", "const");
         offset += 5;
     #else
         return INT;
@@ -112,7 +128,7 @@ linecommentend \n
 }
 "int" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("INT\tint");
+        DEBUG_FOR_LAB4("INT", "int");
         offset += 3;
     #else
         return INT;
@@ -121,7 +137,7 @@ linecommentend \n
 
 "void" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("VOID\tvoid");
+        DEBUG_FOR_LAB4("VOID", "void");
         offset += 4;
     #else
         return VOID;
@@ -130,7 +146,7 @@ linecommentend \n
 
 "if" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("IF\t\tif");
+        DEBUG_FOR_LAB4("IF", "if");
         offset += 2;
     #else
         return IF;
@@ -138,7 +154,7 @@ linecommentend \n
 };
 "else" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("ELSE\telse");
+        DEBUG_FOR_LAB4("ELSE", "else");
         offset += 4;
     #else
         return ELSE;
@@ -146,7 +162,7 @@ linecommentend \n
 };
 "while" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("WHILE\twhile");
+        DEBUG_FOR_LAB4("WHILE" ,"while");
         offset += 5;
     #else
         return WHILE;
@@ -154,7 +170,7 @@ linecommentend \n
 };
 "break" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("BREAK\tbreak");
+        DEBUG_FOR_LAB4("BREAK", "break");
         offset += 5;
     #else
         return BREAK;
@@ -162,7 +178,7 @@ linecommentend \n
 };
 "continue" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("CONTINUE\tcontinue");
+        DEBUG_FOR_LAB4("CONTINUE", "continue");
         offset += 8;
     #else
         return CONTINUE;
@@ -170,7 +186,7 @@ linecommentend \n
 };
 "return" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("RETURN\treturn");
+        DEBUG_FOR_LAB4("RETURN", "return");
         offset += 6;
     #else
         return RETURN;
@@ -178,7 +194,7 @@ linecommentend \n
 }
 "==" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("EQUAL\t==");
+        DEBUG_FOR_LAB4("EQUAL", "==");
         offset += 2;
     #else
         return EQUAL;
@@ -186,7 +202,7 @@ linecommentend \n
 }
 ">=" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("GREQU\t>=");
+        DEBUG_FOR_LAB4("GREQU", ">=");
         offset += 2;
     #else
         return GREQU;
@@ -194,7 +210,7 @@ linecommentend \n
 }
 "<=" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("LEEQU\t<=");
+        DEBUG_FOR_LAB4("LEEQU", "<=");
         offset += 2;
     #else
         return LEEQU;
@@ -202,7 +218,7 @@ linecommentend \n
 }
 "!=" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("NTEQU\t!=");
+        DEBUG_FOR_LAB4("NTEQU", "!=");
         offset += 2;
     #else
         return NTEQU;
@@ -210,7 +226,7 @@ linecommentend \n
 }
 "=" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("ASSIGN\t=");
+        DEBUG_FOR_LAB4("ASSIGN", "=");
         offset += 1;
     #else
         return ASSIGN;
@@ -218,7 +234,7 @@ linecommentend \n
 }
 ">" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("GREA\t>");
+        DEBUG_FOR_LAB4("GREA", ">");
         offset += 1;
     #else
         return GREA;
@@ -226,7 +242,7 @@ linecommentend \n
 }
 "<" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("LESS\t<");
+        DEBUG_FOR_LAB4("LESS", "<");
         offset += 1;
     #else
         return LESS;
@@ -234,7 +250,7 @@ linecommentend \n
 }
 "+" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("ADD\t+");
+        DEBUG_FOR_LAB4("ADD", "+");
         offset += 1;
     #else
         return ADD;
@@ -242,7 +258,7 @@ linecommentend \n
 }
 "-" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("SUB\t-");
+        DEBUG_FOR_LAB4("SUB", "-");
         offset += 1;
     #else
         return SUB;
@@ -250,7 +266,7 @@ linecommentend \n
 }
 "*" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("MUL\t*");
+        DEBUG_FOR_LAB4("MUL", "*");
         offset += 1;
     #else
         return MUL;
@@ -258,7 +274,7 @@ linecommentend \n
 }
 "/" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("DIV\t/");
+        DEBUG_FOR_LAB4("DIV", "/");
         offset += 1;
     #else
         return DIV;
@@ -266,7 +282,7 @@ linecommentend \n
 }
 "%" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("MOD\t%");
+        DEBUG_FOR_LAB4("MOD", "%");
         offset += 1;
     #else
         return MOD;
@@ -274,7 +290,7 @@ linecommentend \n
 }
 "&&" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("AND\t&&");
+        DEBUG_FOR_LAB4("AND", "&&");
         offset += 1;
     #else
         return AND;
@@ -282,7 +298,7 @@ linecommentend \n
 }
 "||" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("OR\t\t||");
+        DEBUG_FOR_LAB4("OR", "||");
         offset += 2;
     #else
         return OR;
@@ -290,7 +306,7 @@ linecommentend \n
 }
 "!" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("NOT\t!");
+        DEBUG_FOR_LAB4("NOT", "!");
         offset += 1;
     #else
         return NOT;
@@ -298,7 +314,7 @@ linecommentend \n
 }
 ";" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("SEMICOLON\t;");
+        DEBUG_FOR_LAB4("SEMICOLON", ";");
         offset += 1;
     #else
         return SEMICOLON;
@@ -306,7 +322,7 @@ linecommentend \n
 }
 "(" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("LPAREN\t(");
+        DEBUG_FOR_LAB4("LPAREN", "(");
         offset += 1;
     #else
         return LPAREN;
@@ -314,7 +330,7 @@ linecommentend \n
 }
 ")" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("RPAREN\t)");
+        DEBUG_FOR_LAB4("RPAREN", ")");
         offset += 1;
     #else
         return RPAREN;
@@ -322,7 +338,7 @@ linecommentend \n
 }
 "[" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("LBRACKET\t[");
+        DEBUG_FOR_LAB4("LBRACKET", "[");
         offset += 1;
     #else
         return LBRACKET;
@@ -330,7 +346,7 @@ linecommentend \n
 }
 "]" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("RBRACKET\t]");
+        DEBUG_FOR_LAB4("RBRACKET", "]");
         offset += 1;
     #else
         return RBRACKET;
@@ -339,7 +355,9 @@ linecommentend \n
 
 "{" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("LBRACE\t{");
+        tag++;
+		scope_stack.push(tag);
+		DEBUG_FOR_LAB4("LBRACE", "{");
         offset += 1;
     #else
         return LBRACE;
@@ -347,7 +365,8 @@ linecommentend \n
 }
 "}" {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("RBRACE\t}");
+        scope_stack.pop();
+		DEBUG_FOR_LAB4("RBRACE", "}");
         offset += 1;
     #else
         return RBRACE;
@@ -355,7 +374,7 @@ linecommentend \n
 }
 "," {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("COMMA\t,");
+        DEBUG_FOR_LAB4("COMMA", ",");
         offset += 1;
     #else
         return COMMA;
@@ -363,12 +382,14 @@ linecommentend \n
 }
 
 {EOL} yylineno++;
-{WHITE} {DEBUG_FOR_LAB4("");offset++;}
+{WHITE} {DEBUG_FOR_LAB4("", "");offset++;}
 
 
 {ID} {
     #ifdef ONLY_FOR_LEX
-    DEBUG_FOR_LAB4("ID\t\t"+std::string(yytext));
+	//yytext += std::to_string(scope_stack.top());
+	//yytext = align(20, yytext);
+    DEBUG_FOR_LAB4("ID", std::string(yytext), std::to_string(scope_stack.top()));
     offset += strlen(yytext);
     #else
         return ID;
@@ -387,7 +408,7 @@ linecommentend \n
         i++;
     }
     sprintf(yytext,"%d",dec);
-    DEBUG_FOR_LAB4("NUM\t"+std::string(yytext));
+    DEBUG_FOR_LAB4("NUM", std::string(yytext));
     offset += strlen(yytext);
     #else
         return NUM;
@@ -395,7 +416,7 @@ linecommentend \n
 }
 {DECIMIAL} {
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("NUM\t"+std::string(yytext));
+        DEBUG_FOR_LAB4("NUM", std::string(yytext));
         offset += strlen(yytext);
     #else
         return NUM;
@@ -425,7 +446,7 @@ linecommentend \n
     i++;
 }
     sprintf(yytext,"%d",dec);
-    DEBUG_FOR_LAB4("NUM\t"+std::string(yytext));
+    DEBUG_FOR_LAB4("NUM", std::string(yytext));
     offset += strlen(yytext);
     #else
         return NUM;
@@ -465,8 +486,8 @@ int main(int argc, char **argv){
         fprintf(stderr, "No such file or directory: %s", argv[3]);
         exit(EXIT_FAILURE);
     }
-    fprintf(yyout,"%18s\t%6s\t%14s\t%14s\n","token","lexeme","lineno","offset");
-
+    fprintf(yyout,"%18s%21s%20s%20s%19s\n","token","lexeme","lineno","offset", "scope");
+    scope_stack.push(tag);
     yylex();
     return 0;
 }
